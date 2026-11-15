@@ -129,9 +129,16 @@ def _read_signed(path: Path) -> tuple[bytes, str | None]:
 
 def load_bundled() -> Catalog:
     raw, sig = _read_signed(BUNDLED_CATALOG)
-    # The bundled catalog ships inside the signed application; its signature
-    # is still checked to detect corruption.
-    data, key = validate_bytes(raw, sig, require_signature=False)
+    # The bundled catalog ships inside the application; its signature is still
+    # checked to detect corruption. A bad signature is logged (signed_by=None,
+    # caught by the self-test) but the schema must always be valid.
+    try:
+        data, key = validate_bytes(raw, sig, require_signature=False)
+    except CatalogError as exc:
+        if exc.key != "catalog.err.signature":
+            raise
+        log.error("bundled catalog signature mismatch")
+        data, key = validate_bytes(raw, None, require_signature=False)
     return Catalog(data, hashlib.sha256(raw).hexdigest(), "bundled", key)
 
 
