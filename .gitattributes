@@ -1,0 +1,6 @@
+# Keep exact bytes for signed data: the catalog signature covers the raw file.
+* text=auto eol=lf
+serafis/data/*.json -text
+serafis/data/*.sig -text
+*.png binary
+*.ico binary

@@ -1,0 +1,339 @@
+{
+  "schema_version": 1,
+  "rules_version": 1,
+  "description": "Serafis identification rules. Each indicator has a weight between 0 and 1. Weights are deliberately conservative: an indicator alone never produces a 'strong' identification. Families are linked to catalog entries through catalog_family_ids. Indicators are based on widely documented, publicly reported characteristics; they can be spoofed and must be confirmed (see references).",
+  "generic": {
+    "note_name_regexes": [
+      "(?i)^[!#_@+\\-\\s\\[\\(]*(how|help|read|readme|restore|recover|recovery|decrypt|decryption|instruction|instructions|unlock|files?|attention|warning|info)[^/\\\\]{0,60}\\.(txt|html?|hta|rtf|url)$"
+    ],
+    "note_name_keywords": ["decrypt", "restore", "recover", "readme", "read_me", "read-me", "how_to", "how to", "instruction", "ransom", "unlock", "encrypted"],
+    "note_text_extensions": [".txt", ".html", ".htm", ".hta"],
+    "generic_ransom_extensions": [".locked", ".encrypted", ".crypted", ".crypt", ".enc", ".encrypt", ".crypto", ".locky_encrypted", ".pay", ".ransom", ".rnsmwr"],
+    "generic_extension_weight": 0.15,
+    "ransom_note_content_keywords": ["your files have been encrypted", "your files are encrypted", "all your files", "decrypt", "bitcoin", "private key", "tor browser", ".onion", "i tuoi file sono stati crittografati", "ransom"]
+  },
+  "families": [
+    {
+      "id": "stop_djvu",
+      "name": "STOP/Djvu",
+      "aliases": ["STOP", "Djvu"],
+      "catalog_family_ids": ["djvu"],
+      "extensions": [".djvu", ".djvus", ".djvuu", ".udjvu", ".uudjvu", ".djvuq", ".djvur", ".djvut", ".tro", ".rumba", ".radman", ".gero", ".kodg", ".nypd"],
+      "extension_weight": 0.45,
+      "note_names": [{"regex": "^_readme\\.txt$", "weight": 0.45}],
+      "note_keywords": [
+        {"text": "you can return all your files!", "weight": 0.5},
+        {"text": "discount 50% available if you contact us first 72 hours", "weight": 0.5}
+      ],
+      "random_extension_with_note": {"note_regex": "^_readme\\.txt$", "extension_regex": "^\\.[a-z]{4}$", "weight": 0.35},
+      "references": ["https://www.nomoreransom.org/en/decryption-tools.html#djvu", "https://www.emsisoft.com/en/ransomware-decryption/stop-djvu/"]
+    },
+    {
+      "id": "dharma_crysis",
+      "name": "Dharma/CrySIS",
+      "aliases": ["Dharma", "Crysis", "CrySIS"],
+      "catalog_family_ids": ["dharma", "crysis"],
+      "extensions": [".dharma", ".wallet", ".arena", ".cesar", ".bip", ".combo", ".gamma"],
+      "extension_weight": 0.35,
+      "filename_patterns": [{"regex": "\\.id-[0-9A-Fa-f]{8}\\.\\[[^\\]]{1,80}@[^\\]]{1,80}\\]\\.[A-Za-z0-9_]{2,16}$", "weight": 0.7}],
+      "note_names": [{"regex": "^FILES ENCRYPTED\\.txt$", "weight": 0.45}, {"regex": "^info\\.hta$", "weight": 0.2}],
+      "references": ["https://www.nomoreransom.org/en/decryption-tools.html#Dharma", "https://www.nomoreransom.org/en/decryption-tools.html#CrySIS"]
+    },
+    {
+      "id": "phobos",
+      "name": "Phobos / 8Base",
+      "aliases": ["Phobos", "8Base", "Eking", "Eight"],
+      "catalog_family_ids": ["phobos8base"],
+      "extensions": [".phobos", ".eking", ".eight", ".8base", ".devos", ".acute", ".faust"],
+      "extension_weight": 0.4,
+      "variants": [{"name": "8Base", "extensions": [".8base"]}],
+      "filename_patterns": [{"regex": "\\.id\\[[0-9A-Fa-f]{8}-[0-9]{4}\\]\\.\\[[^\\]]{1,80}@[^\\]]{1,80}\\]\\.[A-Za-z0-9_]{2,16}$", "weight": 0.7}],
+      "note_names": [{"regex": "^info\\.hta$", "weight": 0.2}, {"regex": "^info\\.txt$", "weight": 0.15}],
+      "references": ["https://www.nomoreransom.org/en/decryption-tools.html#Phobos8base"]
+    },
+    {
+      "id": "makop",
+      "name": "Makop",
+      "aliases": [],
+      "catalog_family_ids": [],
+      "extensions": [".makop"],
+      "extension_weight": 0.45,
+      "filename_patterns": [{"regex": "\\.\\[[0-9A-Fa-f]{8}\\]\\.\\[[^\\]]{1,80}@[^\\]]{1,80}\\]\\.[A-Za-z0-9_]{2,16}$", "weight": 0.55}],
+      "note_names": [{"regex": "^readme-warning\\.txt$", "weight": 0.45}],
+      "references": []
+    },
+    {
+      "id": "wannacry",
+      "name": "WannaCry",
+      "aliases": ["WannaCrypt", "WanaCrypt0r", "WCry"],
+      "catalog_family_ids": [],
+      "extensions": [".wncry", ".wcry", ".wncryt"],
+      "extension_weight": 0.55,
+      "note_names": [{"regex": "^@Please_Read_Me@\\.txt$", "weight": 0.5}, {"regex": "^@WanaDecryptor@\\.(exe|bmp)$", "weight": 0.5}],
+      "references": []
+    },
+    {
+      "id": "gandcrab",
+      "name": "GandCrab",
+      "aliases": [],
+      "catalog_family_ids": ["gandcrabv1v4andv5uptov52versions"],
+      "extensions": [".gdcb", ".crab", ".krab"],
+      "extension_weight": 0.5,
+      "variants": [
+        {"name": "v1", "extensions": [".gdcb"], "note_regex": "^GDCB-DECRYPT\\.txt$"},
+        {"name": "v2-v3", "extensions": [".crab"], "note_regex": "^CRAB-DECRYPT\\.txt$"},
+        {"name": "v4", "extensions": [".krab"], "note_regex": "^KRAB-DECRYPT\\.txt$"}
+      ],
+      "note_names": [{"regex": "^(GDCB|CRAB|KRAB)-DECRYPT\\.txt$", "weight": 0.5}],
+      "linked_note": {"regex": "^(?P<ext>[A-Z]{5,10})-(DECRYPT|MANUAL)\\.(txt|html)$", "weight": 0.55, "variant": "v5"},
+      "references": ["https://www.nomoreransom.org/en/decryption-tools.html#GandCrabV1V4andV5uptoV52versions"]
+    },
+    {
+      "id": "revil",
+      "name": "REvil/Sodinokibi",
+      "aliases": ["REvil", "Sodinokibi", "Sodin"],
+      "catalog_family_ids": ["revilsodinokibi"],
+      "linked_note": {"regex": "^(?P<ext>[a-z0-9]{5,10})-readme\\.txt$", "weight": 0.5},
+      "note_keywords": [{"text": "---=== welcome. again. ===---", "weight": 0.35}, {"text": "sodinokibi", "weight": 0.3}],
+      "references": ["https://www.nomoreransom.org/en/decryption-tools.html#REvilSodinokibi"]
+    },
+    {
+      "id": "lockbit",
+      "name": "LockBit",
+      "aliases": ["LockBit 2.0", "LockBit 3.0", "LockBit Black"],
+      "catalog_family_ids": ["lockbit30"],
+      "extensions": [".lockbit"],
+      "extension_weight": 0.5,
+      "variants": [{"name": "2.0", "extensions": [".lockbit"], "note_regex": "^Restore-My-Files\\.txt$"}],
+      "note_names": [{"regex": "^Restore-My-Files\\.txt$", "weight": 0.45}],
+      "linked_note": {"regex": "^(?P<ext>[A-Za-z0-9]{9})\\.README\\.txt$", "weight": 0.5, "variant": "3.0"},
+      "note_keywords": [{"text": "lockbit", "weight": 0.35}],
+      "references": ["https://www.nomoreransom.org/en/decryption-tools.html#Lockbit30"]
+    },
+    {
+      "id": "teslacrypt",
+      "name": "TeslaCrypt",
+      "aliases": [],
+      "catalog_family_ids": ["teslacryptv1", "teslacryptv2", "teslacryptv3", "teslacryptv4"],
+      "extensions": [".ecc", ".ezz", ".exx", ".vvv", ".ttt", ".micro", ".zzz", ".xyz"],
+      "extension_weight": 0.35,
+      "note_names": [
+        {"regex": "(?i)^_?recovery_?\\+[a-z0-9]{5}\\+?\\.(txt|html|png)$", "weight": 0.5},
+        {"regex": "(?i)^help_restore_files(_[a-z0-9]{5})?\\.txt$", "weight": 0.4},
+        {"regex": "(?i)^help_to_decrypt_your_files\\.txt$", "weight": 0.3}
+      ],
+      "references": ["https://www.nomoreransom.org/en/decryption-tools.html#TeslaCryptV3"]
+    },
+    {
+      "id": "shade",
+      "name": "Shade (Troldesh)",
+      "aliases": ["Troldesh", "Encoder.858"],
+      "catalog_family_ids": ["shade"],
+      "extensions": [".xtbl", ".ytbl", ".breaking_bad", ".heisenberg", ".better_call_saul", ".los_pollos", ".da_vinci_code", ".magic_software_syndicate", ".no_more_ransom", ".crypted000007", ".crypted000078"],
+      "extension_weight": 0.55,
+      "note_names": [{"regex": "^README[0-9]{1,2}\\.txt$", "weight": 0.25}],
+      "references": ["https://www.nomoreransom.org/en/decryption-tools.html#Shade"]
+    },
+    {
+      "id": "locky",
+      "name": "Locky",
+      "aliases": [],
+      "catalog_family_ids": [],
+      "extensions": [".locky", ".zepto", ".odin", ".thor", ".aesir", ".zzzzz", ".osiris", ".lukitus", ".diablo6", ".ykcol", ".asasin"],
+      "extension_weight": 0.5,
+      "note_names": [{"regex": "(?i)^_locky_recover_instructions\\.txt$", "weight": 0.5}, {"regex": "(?i)^_?[0-9]*_?help_instructions\\.(html|bmp|txt)$", "weight": 0.35}],
+      "references": []
+    },
+    {
+      "id": "cerber",
+      "name": "Cerber",
+      "aliases": [],
+      "catalog_family_ids": ["cerberv1"],
+      "extensions": [".cerber", ".cerber2", ".cerber3"],
+      "extension_weight": 0.55,
+      "variants": [
+        {"name": "V1", "extensions": [".cerber"]},
+        {"name": "V2", "extensions": [".cerber2"]},
+        {"name": "V3", "extensions": [".cerber3"]}
+      ],
+      "note_names": [{"regex": "^# DECRYPT MY FILES #\\.(txt|html|vbs)$", "weight": 0.45}],
+      "references": ["https://www.nomoreransom.org/en/decryption-tools.html#CERBERV1"]
+    },
+    {
+      "id": "ryuk",
+      "name": "Ryuk",
+      "aliases": [],
+      "catalog_family_ids": [],
+      "extensions": [".ryk"],
+      "extension_weight": 0.5,
+      "note_names": [{"regex": "(?i)^RyukReadMe\\.(txt|html)$", "weight": 0.5}],
+      "note_keywords": [{"text": "ryuk", "weight": 0.3}],
+      "references": []
+    },
+    {
+      "id": "conti",
+      "name": "Conti",
+      "aliases": [],
+      "catalog_family_ids": [],
+      "extensions": [".conti"],
+      "extension_weight": 0.5,
+      "note_names": [{"regex": "(?i)^CONTI_README\\.txt$", "weight": 0.5}],
+      "note_keywords": [{"text": "conti", "weight": 0.25}],
+      "references": []
+    },
+    {
+      "id": "akira",
+      "name": "Akira",
+      "aliases": [],
+      "catalog_family_ids": ["akira"],
+      "extensions": [".akira"],
+      "extension_weight": 0.5,
+      "note_names": [{"regex": "(?i)^akira_readme\\.txt$", "weight": 0.5}],
+      "note_keywords": [{"text": "akira", "weight": 0.3}],
+      "references": ["https://www.nomoreransom.org/en/decryption-tools.html#Akira"]
+    },
+    {
+      "id": "babuk",
+      "name": "Babuk",
+      "aliases": ["Babyk"],
+      "catalog_family_ids": ["babuk"],
+      "extensions": [".babyk", ".babuk", ".__nist_k571__"],
+      "extension_weight": 0.5,
+      "note_names": [{"regex": "^How To Restore Your Files\\.txt$", "weight": 0.35}],
+      "note_keywords": [{"text": "babuk", "weight": 0.3}],
+      "references": ["https://www.nomoreransom.org/en/decryption-tools.html#Babuk"]
+    },
+    {
+      "id": "megacortex",
+      "name": "MegaCortex",
+      "aliases": [],
+      "catalog_family_ids": ["megacortex"],
+      "extensions": [".megac0rtex"],
+      "extension_weight": 0.55,
+      "note_names": [{"regex": "^!!!_READ[_-]ME_!!!\\.txt$", "weight": 0.35}],
+      "references": ["https://www.nomoreransom.org/en/decryption-tools.html#MegaCortex"]
+    },
+    {
+      "id": "lockergoga",
+      "name": "LockerGoga",
+      "aliases": [],
+      "catalog_family_ids": ["lockergoga"],
+      "note_names": [{"regex": "^README_LOCKED\\.txt$", "weight": 0.45}],
+      "references": ["https://www.nomoreransom.org/en/decryption-tools.html#LockerGoga"]
+    },
+    {
+      "id": "rhysida",
+      "name": "Rhysida",
+      "aliases": [],
+      "catalog_family_ids": ["rhysida"],
+      "extensions": [".rhysida"],
+      "extension_weight": 0.55,
+      "note_names": [{"regex": "^CriticalBreachDetected\\.pdf$", "weight": 0.45}],
+      "references": ["https://www.nomoreransom.org/en/decryption-tools.html#Rhysida"]
+    },
+    {
+      "id": "blackbasta",
+      "name": "Black Basta",
+      "aliases": ["BlackBasta"],
+      "catalog_family_ids": ["blackbasta"],
+      "extensions": [".basta"],
+      "extension_weight": 0.5,
+      "note_keywords": [{"text": "black basta", "weight": 0.3}],
+      "references": ["https://www.nomoreransom.org/en/decryption-tools.html#BlackBasta"]
+    },
+    {
+      "id": "hive",
+      "name": "Hive",
+      "aliases": [],
+      "catalog_family_ids": ["hivev1tov4"],
+      "extensions": [".hive"],
+      "extension_weight": 0.45,
+      "note_names": [{"regex": "^HOW_TO_DECRYPT\\.txt$", "weight": 0.2}],
+      "references": ["https://www.nomoreransom.org/en/decryption-tools.html#Hivev1tov4"]
+    },
+    {
+      "id": "maze",
+      "name": "Maze / Sekhmet / Egregor",
+      "aliases": ["Maze", "Sekhmet", "Egregor"],
+      "catalog_family_ids": ["mazesekhmetegregor"],
+      "note_names": [{"regex": "^DECRYPT-FILES\\.(txt|html)$", "weight": 0.35}, {"regex": "^RECOVER-FILES\\.txt$", "weight": 0.3}],
+      "note_keywords": [{"text": "maze", "weight": 0.2}, {"text": "egregor", "weight": 0.3}],
+      "references": ["https://www.nomoreransom.org/en/decryption-tools.html#MazeSekhmetEgregor"]
+    },
+    {
+      "id": "darkside",
+      "name": "DarkSide",
+      "aliases": [],
+      "catalog_family_ids": ["darkside"],
+      "linked_note": {"regex": "^README\\.(?P<ext>[0-9a-f]{8})\\.TXT$", "weight": 0.45},
+      "note_keywords": [{"text": "darkside", "weight": 0.35}],
+      "references": ["https://www.nomoreransom.org/en/decryption-tools.html#Darkside"]
+    },
+    {
+      "id": "blackcat",
+      "name": "BlackCat/ALPHV",
+      "aliases": ["ALPHV", "Noberus"],
+      "catalog_family_ids": [],
+      "linked_note": {"regex": "^RECOVER-(?P<ext>[a-z0-9]{7})-FILES\\.txt$", "weight": 0.5},
+      "references": []
+    },
+    {
+      "id": "aes_ni",
+      "name": "AES-NI",
+      "aliases": [],
+      "catalog_family_ids": ["aes_ni"],
+      "extensions": [".aes_ni", ".aes_ni_0day", ".aes256"],
+      "extension_weight": 0.45,
+      "note_names": [{"regex": "^!!! READ THIS - IMPORTANT !!!\\.txt$", "weight": 0.4}],
+      "references": ["https://www.nomoreransom.org/en/decryption-tools.html#AES_NI"]
+    },
+    {
+      "id": "jigsaw",
+      "name": "Jigsaw",
+      "aliases": [],
+      "catalog_family_ids": ["jigsaw"],
+      "extensions": [".fun", ".kkk", ".gws"],
+      "extension_weight": 0.3,
+      "references": ["https://www.nomoreransom.org/en/decryption-tools.html#Jigsaw"]
+    },
+    {
+      "id": "targetcompany",
+      "name": "TargetCompany (Mallox)",
+      "aliases": ["Mallox", "Fargo"],
+      "catalog_family_ids": ["targetcompany"],
+      "extensions": [".mallox", ".fargo"],
+      "extension_weight": 0.45,
+      "references": ["https://www.nomoreransom.org/en/decryption-tools.html#TargetCompany"]
+    },
+    {
+      "id": "medusa",
+      "name": "Medusa",
+      "aliases": [],
+      "catalog_family_ids": [],
+      "extensions": [".medusa"],
+      "extension_weight": 0.5,
+      "note_names": [{"regex": "(?i)^!!!READ_ME_MEDUSA!!!\\.txt$", "weight": 0.5}],
+      "references": []
+    },
+    {
+      "id": "clop",
+      "name": "Clop",
+      "aliases": ["Cl0p"],
+      "catalog_family_ids": [],
+      "extensions": [".clop", ".cllp", ".c_i0p"],
+      "extension_weight": 0.5,
+      "note_names": [{"regex": "(?i)^clopreadme\\.txt$", "weight": 0.5}],
+      "references": []
+    },
+    {
+      "id": "bianlian",
+      "name": "BianLian",
+      "aliases": [],
+      "catalog_family_ids": ["bianlian"],
+      "extensions": [".bianlian"],
+      "extension_weight": 0.55,
+      "note_names": [{"regex": "^Look at this instruction\\.txt$", "weight": 0.4}],
+      "references": ["https://www.nomoreransom.org/en/decryption-tools.html#Bianlian"]
+    }
+  ]
+}

@@ -1,0 +1,124 @@
+name: CI · Build · Release
+
+on:
+  push:
+    branches: [main, "claude/**"]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  test:
+    name: Tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    env:
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: System libraries for Qt (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libegl1 libgl1 libxkbcommon0 libfontconfig1 libdbus-1-3
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+      - name: Verify catalog signature
+        run: python scripts/catalog_signing.py verify serafis/data/catalog.json
+      - name: Run tests
+        run: python -m pytest -v
+
+  build-windows:
+    name: Build Serafis.exe
+    needs: test
+    runs-on: windows-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+      - name: Version
+        id: version
+        shell: bash
+        run: echo "version=$(python scripts/write_version_info.py)" >> "$GITHUB_OUTPUT"
+      - name: PyInstaller build
+        run: pyinstaller --noconfirm --clean Serafis.spec
+      - name: Self-test of the packaged executable
+        shell: pwsh
+        run: |
+          $env:SERAFIS_HOME = "$env:RUNNER_TEMP\serafis_home"
+          $p = Start-Process -FilePath "dist\Serafis.exe" -ArgumentList "--self-test","$env:RUNNER_TEMP\selftest.json" -Wait -PassThru
+          Get-Content "$env:RUNNER_TEMP\selftest.json"
+          if ($p.ExitCode -ne 0) { throw "self-test failed with exit code $($p.ExitCode)" }
+      - name: GUI smoke test of the packaged executable
+        shell: pwsh
+        run: |
+          $env:SERAFIS_HOME = "$env:RUNNER_TEMP\serafis_home_gui"
+          $p = Start-Process -FilePath "dist\Serafis.exe" -ArgumentList "--smoke-test" -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "GUI smoke test failed with exit code $($p.ExitCode)" }
+          Get-Content "$env:SERAFIS_HOME\logs\serafis.log"
+      - name: Package release files
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force release | Out-Null
+          Copy-Item dist\Serafis.exe release\Serafis.exe
+          $h = (Get-FileHash release\Serafis.exe -Algorithm SHA256).Hash.ToLower()
+          "$h  Serafis.exe" | Out-File -Encoding ascii release\Serafis.exe.sha256
+          Copy-Item docs\QUICKSTART.md release\QUICKSTART.md
+          Copy-Item "docs\RELEASE_NOTES_${{ steps.version.outputs.version }}.md" release\RELEASE_NOTES.md
+          Get-Content release\Serafis.exe.sha256
+          Get-ChildItem release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Serafis-${{ steps.version.outputs.version }}-windows
+          path: release/
+          if-no-files-found: error
+
+  release:
+    name: Publish GitHub Release
+    needs: build-windows
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/claude/') || startsWith(github.ref, 'refs/tags/v'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: Serafis-${{ needs.build-windows.outputs.version }}-windows
+          path: release
+      - name: Create release if this version was not released yet
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.build-windows.outputs.version }}
+        run: |
+          TAG="v${VERSION}"
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $TAG already exists - nothing to publish (bump serafis.__version__ for a new release)."
+            exit 0
+          fi
+          cat release/Serafis.exe.sha256
+          { cat release/RELEASE_NOTES.md; echo; echo "### SHA-256"; echo '```'; cat release/Serafis.exe.sha256; echo '```'; } > notes.md
+          gh release create "$TAG" release/Serafis.exe release/Serafis.exe.sha256 release/QUICKSTART.md release/RELEASE_NOTES.md \
+            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "SERAFIS ${VERSION}" --notes-file notes.md --latest

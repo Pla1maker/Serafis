@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "serafis"
+dynamic = ["version"]
+description = "SERAFIS - Ransomware Recovery Companion: a defensive, guided ransomware recovery assistant"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+authors = [{ name = "Serafis contributors" }]
+dependencies = ["PySide6-Essentials>=6.7,<7", "jsonschema>=4.20,<5", "cryptography>=42"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: Microsoft :: Windows",
+  "Environment :: Win32 (MS Windows)",
+  "Topic :: Security",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pytest-qt>=4.4", "pyinstaller>=6.10"]
+yara = ["yara-python>=4.3"]
+
+[project.gui-scripts]
+serafis = "serafis.app.main:main"
+
+[tool.setuptools.dynamic]
+version = { attr = "serafis.__version__" }
+
+[tool.setuptools.packages.find]
+include = ["serafis*"]
+
+[tool.setuptools.package-data]
+serafis = ["data/*.json", "data/*.sig", "data/rules/*.json", "localization/*.json", "resources/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+qt_api = "pyside6"
